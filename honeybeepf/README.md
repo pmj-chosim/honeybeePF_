@@ -63,7 +63,7 @@ cargo --version
 
 ```bash
 # Inside VM: navigate to the project (mounted from macOS via virtiofs)
-cd /<your-repo>/honeybeePF/honeybeepf
+cd /<your-repo>/honeybeepf/honeybeepf
 
 # Build
 cargo build --release
