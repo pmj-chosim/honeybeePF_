@@ -1,5 +1,5 @@
 output "vcn_id" {
-  value = oci_core_vcn.this.id
+  value = oci_core_vcn.oke_vcn.id
 }
 
 output "api_subnet_id" {

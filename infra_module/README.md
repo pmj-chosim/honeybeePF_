@@ -32,6 +32,26 @@ sed -i '' "s|ocid1.compartment.oc1..example|<your_compartment_ocid>|" envs/$USER
 terraform -chdir=envs/$USER init
 terraform -chdir=envs/$USER plan -var-file=dev.tfvars
 terraform -chdir=envs/$USER apply -var-file=dev.tfvars
+
+### Using environment variables instead of tfvars for sensitive values
+
+To avoid hardcoding sensitive inputs like the compartment OCID and SSH public key, export them as TF_VARs. Terraform automatically maps `TF_VAR_<name>` to input variable `name` in the root module.
+
+```bash
+# In your shell (macOS zsh example)
+export TF_VAR_compartment_ocid="<your-tenancy-or-compartment-ocid>"
+export TF_VAR_ssh_public_key="$(cat ~/.ssh/id_rsa.pub)"
+```
+
+Notes:
+- Do NOT set `compartment_ocid` or `ssh_public_key` in `dev.tfvars` if you want the environment variables to take effect (the explicit tfvars values would override env vars).
+- You can still keep `dev.tfvars` for non-sensitive overrides (name prefix, sizes, CIDRs, etc.).
+- Run as usual from your env folder:
+
+```bash
+terraform -chdir=envs/$USER plan -var-file=dev.tfvars
+terraform -chdir=envs/$USER apply -var-file=dev.tfvars
+```
 ```
 
 Optional: use Terraform workspaces per developer instead of separate tfvars files.
