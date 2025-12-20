@@ -24,7 +24,6 @@ override.tf.json
 *_override.tf.json
 
 # Variable files — ignore by default to avoid leaking secrets
-*.tfvars
 *.tfvars.json
 # Allow only examples/templates
 !*.tfvars.example

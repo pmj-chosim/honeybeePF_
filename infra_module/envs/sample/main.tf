@@ -14,6 +14,8 @@ module "stack" {
   source = "../../stack"
 
   compartment_ocid   = var.compartment_ocid
+  tenancy_ocid       = var.tenancy_ocid
+  bastion_client_cidr_list = var.bastion_client_cidr_list
   ssh_public_key     = var.ssh_public_key
   name_prefix        = var.name_prefix
   cluster_name       = var.cluster_name
@@ -26,7 +28,6 @@ module "stack" {
   vcn_cidr         = var.vcn_cidr
   api_subnet_cidr  = var.api_subnet_cidr
   node_subnet_cidr = var.node_subnet_cidr
-  lb_subnet_cidr   = var.lb_subnet_cidr
 }
 
 output "cluster_id" {
