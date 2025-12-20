@@ -3,6 +3,16 @@ variable "compartment_ocid" {
   type        = string
 }
 
+variable "tenancy_ocid" {
+  description = "Target tenancy OCID"
+  type        = string
+}
+
+variable "bastion_client_cidr_list" {
+  description = "List of CIDRs allowed to connect to Bastion (your IP)"
+  type        = string
+}
+
 variable "ssh_public_key" {
   description = "SSH public key for worker nodes"
   type        = string
@@ -66,10 +76,4 @@ variable "node_subnet_cidr" {
   description = "CIDR for node subnet"
   type        = string
   default     = "10.0.1.0/24"
-}
-
-variable "lb_subnet_cidr" {
-  description = "CIDR for load balancer subnet"
-  type        = string
-  default     = "10.0.2.0/24"
 }

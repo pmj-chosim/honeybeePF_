@@ -9,3 +9,4 @@ override.tf.json
 terraform.tfvars
 *.tfvars
 .terraform.lock.hcl
+dev.tfvars

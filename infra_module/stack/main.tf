@@ -1,11 +1,13 @@
 module "network" {
   source            = "../modules/network"
   compartment_ocid  = var.compartment_ocid
+  tenancy_ocid      = var.tenancy_ocid
+  bastion_client_cidr_list = var.bastion_client_cidr_list
+  ssh_public_key    = var.ssh_public_key
   name_prefix       = var.name_prefix
   vcn_cidr          = var.vcn_cidr
   api_subnet_cidr   = var.api_subnet_cidr
   node_subnet_cidr  = var.node_subnet_cidr
-  lb_subnet_cidr    = var.lb_subnet_cidr
 }
 
 module "cluster" {
@@ -15,7 +17,6 @@ module "cluster" {
   cluster_name        = var.cluster_name
   vcn_id              = module.network.vcn_id
   api_subnet_id       = module.network.api_subnet_id
-  lb_subnet_id        = module.network.lb_subnet_id
 }
 
 module "nodepool" {

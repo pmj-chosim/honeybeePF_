@@ -1,3 +1,4 @@
+# TODO: We can add some objects storage for terraform lock file
 data "oci_core_services" "all_services" {
   filter {
     name   = "name"
@@ -34,6 +35,7 @@ resource "oci_core_service_gateway" "sgw" {
   }
 }
 
+## NOT USED FOR NOW
 resource "oci_core_route_table" "public_rt" {
   compartment_id = var.compartment_ocid
   vcn_id         = oci_core_vcn.oke_vcn.id
@@ -72,20 +74,23 @@ resource "oci_core_security_list" "api" {
   egress_security_rules {
     destination = var.anywhere_cidr
     protocol    = "all"
-  }
-
-  ingress_security_rules {
-    protocol = var.tcp_protocol_number
-    source   = var.anywhere_cidr
-    tcp_options {
-      max = 6443
-      min = 6443
-    }
+    description = "Allow all outbound"
   }
 
   ingress_security_rules {
     protocol = var.tcp_protocol_number
     source   = var.vcn_cidr
+    tcp_options {
+      min = 6443
+      max = 6443
+    }
+    description = "K8s API from VCN (via Bastion port-forward)"
+  }
+
+  ingress_security_rules {
+    protocol    = var.tcp_protocol_number
+    source      = var.vcn_cidr
+    description = "All TCP from VCN internal"
   }
 }
 
@@ -95,23 +100,37 @@ resource "oci_core_security_list" "node" {
   display_name   = "${var.name_prefix}-node-sl"
 
   egress_security_rules {
-    destination = "0.0.0.0/0"
+    destination = var.anywhere_cidr
     protocol    = "all"
+    description = "Allow all outbound"
   }
 
   ingress_security_rules {
-    protocol = "all"
+    protocol    = "all"
+    source      = var.vcn_cidr
+    description = "All traffic from VCN"
+  }
+
+  ingress_security_rules {
+    protocol = var.tcp_protocol_number
     source   = var.vcn_cidr
+    tcp_options {
+      min = 22
+      max = 22
+    }
+    description = "SSH from VCN (via Bastion)"
   }
 }
 
 resource "oci_core_subnet" "api" {
-  cidr_block        = var.api_subnet_cidr
-  compartment_id    = var.compartment_ocid
-  vcn_id            = oci_core_vcn.oke_vcn.id
-  display_name      = "${var.name_prefix}-api-subnet"
-  route_table_id    = oci_core_route_table.public_rt.id
-  security_list_ids = [oci_core_security_list.api.id]
+  cidr_block                 = var.api_subnet_cidr
+  compartment_id             = var.compartment_ocid
+  vcn_id                     = oci_core_vcn.oke_vcn.id
+  display_name               = "${var.name_prefix}-api-subnet"
+  route_table_id             = oci_core_route_table.private_rt.id
+  security_list_ids          = [oci_core_security_list.api.id]
+  prohibit_public_ip_on_vnic = true
+  dns_label                  = "api"
 }
 
 resource "oci_core_subnet" "node" {
@@ -122,13 +141,16 @@ resource "oci_core_subnet" "node" {
   route_table_id             = oci_core_route_table.private_rt.id
   security_list_ids          = [oci_core_security_list.node.id]
   prohibit_public_ip_on_vnic = true
+  dns_label                  = "node"
 }
 
-resource "oci_core_subnet" "lb" {
-  cidr_block        = var.lb_subnet_cidr
-  compartment_id    = var.compartment_ocid
-  vcn_id            = oci_core_vcn.oke_vcn.id
-  display_name      = "${var.name_prefix}-lb-subnet"
-  route_table_id    = oci_core_route_table.public_rt.id
-  security_list_ids = [oci_core_security_list.api.id]
+resource "oci_bastion_bastion" "bastion" {
+  compartment_id               = var.compartment_ocid
+  bastion_type                 = "STANDARD"
+  target_subnet_id             = oci_core_subnet.node.id
+  name                         = "${var.name_prefix}-bastion"
+  client_cidr_block_allow_list = [var.bastion_client_cidr_list]
+
+  # Max session TTL (1 hours = 3600 seconds)
+  max_session_ttl_in_seconds = 3600
 }

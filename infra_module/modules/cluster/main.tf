@@ -14,7 +14,6 @@ resource "oci_containerengine_cluster" "this" {
       is_kubernetes_dashboard_enabled = false
       is_tiller_enabled               = false
     }
-    service_lb_subnet_ids = [var.lb_subnet_id]
   }
 
   type = "BASIC_CLUSTER"

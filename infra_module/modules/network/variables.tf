@@ -1,41 +1,55 @@
 variable "compartment_ocid" {
+  description = "OCI Compartment OCID"
   type        = string
-  description = "Compartment OCID"
+}
+
+variable "tenancy_ocid" {
+  description = "OCI Tenancy OCID"
+  type        = string
+}
+
+variable "bastion_client_cidr_list" {
+  description = "List of CIDRs allowed to connect to Bastion (your IP)"
+  type        = string
+}
+
+variable "ssh_public_key" {
+  description = "SSH public key for worker nodes"
+  type        = string
 }
 
 variable "name_prefix" {
+  description = "Prefix for all resource names"
   type        = string
-  description = "Resource name prefix"
+  default     = "oke"
 }
 
 variable "vcn_cidr" {
+  description = "VCN CIDR block"
   type        = string
-  description = "VCN CIDR"
+  default     = "10.0.0.0/16"
 }
 
 variable "api_subnet_cidr" {
+  description = "API/Control Plane subnet CIDR (private)"
   type        = string
-  description = "API subnet CIDR"
+  default     = "10.0.0.0/28"
 }
 
 variable "node_subnet_cidr" {
+  description = "Worker node subnet CIDR (private)"
   type        = string
-  description = "Node subnet CIDR"
-}
-
-variable "lb_subnet_cidr" {
-  type        = string
-  description = "LB subnet CIDR"
+  default     = "10.0.1.0/24"
 }
 
 variable "anywhere_cidr" {
+  description = "CIDR for anywhere (internet)"
   type        = string
-  description = "CIDR for public internet (0.0.0.0/0)"
   default     = "0.0.0.0/0"
 }
 
 variable "tcp_protocol_number" {
-  type        = string
   description = "Protocol number for TCP"
+  type        = string
   default     = "6"
 }

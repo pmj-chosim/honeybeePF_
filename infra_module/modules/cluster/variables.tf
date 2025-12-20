@@ -22,8 +22,3 @@ variable "api_subnet_id" {
   type        = string
   description = "API subnet ID"
 }
-
-variable "lb_subnet_id" {
-  type        = string
-  description = "Load balancer subnet ID"
-}
