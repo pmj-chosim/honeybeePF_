@@ -5,18 +5,18 @@ metadata:
   labels:
     {{- include "honeybeepf.labels" . | nindent 4 }}
 data:
-  # OTLP Configuration
+  # OTLP Configuration for raw data transmission
   OTEL_EXPORTER_OTLP_ENDPOINT: {{ .Values.output.otlp.endpoint | quote }}
   OTEL_EXPORTER_OTLP_PROTOCOL: {{ .Values.output.otlp.protocol | quote }}
 
-  # Probe Toggles
-  PROBE_DB_CONNECTION: {{ .Values.probes.db_connection | quote }}
-  PROBE_FILE_IO: {{ .Values.probes.file_io | quote }}
-  PROBE_NETWORK_LATENCY: {{ .Values.probes.network_latency | quote }}
+  # Built-in Probe Toggles (High-level)
+  PROBE_BLOCK_IO: {{ .Values.builtinProbes.block_io.enabled | quote }}
+  PROBE_NETWORK_LATENCY: {{ .Values.builtinProbes.network_latency.enabled | quote }}
   
-  # Collection Interval (Action Item: Resource Management)
-  PROBE_INTERVAL: {{ .Values.probes.interval | quote }}
+  # Collection Interval (Resource Management Action Item)
+  PROBE_INTERVAL: {{ .Values.builtinProbes.interval | quote }}
 
-{{- with .Values.probes.customProbes }}
-  CUSTOM_PROBE_CONFIG: {{ toJson . | quote }}
-{{- end }}
+  # Custom Probe JSON: Serialized for the Aya/Rust agent
+  {{- if or .Values.customProbes.kprobes .Values.customProbes.uprobes .Values.customProbes.tracepoints }}
+  CUSTOM_PROBE_CONFIG: {{ toJson .Values.customProbes | quote }}
+  {{- end }}

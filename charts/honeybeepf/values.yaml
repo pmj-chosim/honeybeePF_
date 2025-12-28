@@ -1,31 +1,55 @@
-# 1. Service Account Configuration 
+# Name overrides for resource naming flexibility
+nameOverride: ""
+fullnameOverride: ""
+
+# Image configuration including private registry support
+image:
+  repository: "jundorok/honeybeepf"
+  tag: "latest"
+  pullPolicy: IfNotPresent
+imagePullSecrets: [] # List for private registry credentials
+
+# Annotations for the pod (e.g., Prometheus scraping)
+podAnnotations: {}
+
+# Service Account for RBAC permissions
 serviceAccount:
   create: true
   annotations: {}
-  # If not set, a name is generated using the fullname template
   name: ""
 
-# 2. Probe Settings (Meeting Notes: Hybrid structure)
-probes:
-  db_connection: true
-  file_io: false
-  network_latency: false
-  interval: 1000 # Action item: Resource management
+# Hybrid Probe Configuration
+builtinProbes:
+  block_io:
+    enabled: true
+  network_latency:
+    enabled: false
+  interval: 1000
 
-# 3. Data Output Settings 
-# This block is required by templates/configmap.yaml
+customProbes:
+  kprobes: []
+  uprobes: []
+  tracepoints: []
+
+# Data Output (OTLP for observability backends)
 output:
   otlp:
     endpoint: "otel-collector.monitoring.svc:4317"
     protocol: "grpc"
 
-# 4. Deployment Settings
-image:
-  repository: "jundorok/honeybeepf"
-  tag: "latest" # Keep as latest for development
-  pullPolicy: IfNotPresent
+# Security Context: Hardened for production
+securityContext:
+  privileged: false
+  readOnlyRootFilesystem: true # Added for enhanced security posture
+  capabilities:
+    drop:
+      - ALL
+    add:
+      - SYS_ADMIN
+      - BPF
+      - NET_ADMIN
 
-# 5. Resource Limits
+# Resource limits with robust parsing (quotes)
 resources:
   limits:
     cpu: "200m"
@@ -34,12 +58,7 @@ resources:
     cpu: "100m"
     memory: "128Mi"
 
-# 6. Security & Scheduling 
-securityContext:
-  privileged: true
-  capabilities:
-    add: ["SYS_ADMIN", "BPF"]
-
+# Scheduling
 nodeSelector: {}
 tolerations:
   - effect: NoSchedule

@@ -14,34 +14,50 @@ spec:
       maxUnavailable: 1
   template:
     metadata:
+      # Added support for Pod Annotations
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       labels:
         {{- include "honeybeepf.selectorLabels" . | nindent 8 }}
     spec:
-      # Use the dedicated ServiceAccount (Copilot's Feedback)
-      serviceAccountName: {{ include "honeybeepf.serviceAccountName" . }}
+      # Support for private registry image pull secrets
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       
-      # Required for eBPF to monitor host-level processes
+      serviceAccountName: {{ include "honeybeepf.serviceAccountName" . }}
       hostPID: true 
       hostNetwork: true
 
+      {{- with .Values.nodeSelector }}
       nodeSelector:
-        {{- toYaml .Values.nodeSelector | nindent 8 }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
       tolerations:
-        {{- toYaml .Values.tolerations | nindent 8 }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       
       containers:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
-          
-          # Security settings for eBPF operations
           securityContext:
-            privileged: {{ .Values.securityContext.privileged }}
-            capabilities:
-              {{- toYaml .Values.securityContext.capabilities | nindent 14 }}
+            {{- toYaml .Values.securityContext | nindent 12 }}
 
-          resources:
-            {{- toYaml .Values.resources | nindent 12 }}
+          livenessProbe:
+            exec:
+              command: ["sh", "-c", "cat /proc/self/status"]
+            initialDelaySeconds: 10
+            periodSeconds: 30
+          readinessProbe:
+            exec:
+              command: ["sh", "-c", "cat /proc/self/status"]
+            initialDelaySeconds: 5
+            periodSeconds: 15
 
           envFrom:
             - configMapRef:
@@ -50,6 +66,8 @@ spec:
           volumeMounts:
             - mountPath: /sys/fs/bpf
               name: bpf-fs
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
       
       volumes:
         - name: bpf-fs
