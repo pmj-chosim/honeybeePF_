@@ -1,0 +1,65 @@
+# Name overrides for resource naming flexibility
+nameOverride: ""
+fullnameOverride: ""
+
+# Image configuration including private registry support
+image:
+  repository: "jundorok/honeybeepf"
+  tag: "latest"
+  pullPolicy: IfNotPresent
+imagePullSecrets: [] # List for private registry credentials
+
+# Annotations for the pod (e.g., Prometheus scraping)
+podAnnotations: {}
+
+# Service Account for RBAC permissions
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+# Hybrid Probe Configuration
+builtinProbes:
+  block_io:
+    enabled: true
+  network_latency:
+    enabled: false
+  interval: 1000
+
+customProbes:
+  kprobes: []
+  uprobes: []
+  tracepoints: []
+
+# Data Output (OTLP for observability backends)
+output:
+  otlp:
+    endpoint: "otel-collector.monitoring.svc:4317"
+    protocol: "grpc"
+
+# Security Context: Hardened for production
+securityContext:
+  privileged: false
+  readOnlyRootFilesystem: true # Added for enhanced security posture
+  capabilities:
+    drop:
+      - ALL
+    add:
+      - SYS_ADMIN
+      - BPF
+      - NET_ADMIN
+
+# Resource limits with robust parsing (quotes)
+resources:
+  limits:
+    cpu: "200m"
+    memory: "256Mi"
+  requests:
+    cpu: "100m"
+    memory: "128Mi"
+
+# Scheduling
+nodeSelector: {}
+tolerations:
+  - effect: NoSchedule
+    operator: Exists

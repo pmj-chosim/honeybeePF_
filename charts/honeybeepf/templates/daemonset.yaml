@@ -1,0 +1,76 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: {{ include "honeybeepf.fullname" . }}
+  labels:
+    {{- include "honeybeepf.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "honeybeepf.selectorLabels" . | nindent 6 }}
+  updateStrategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+  template:
+    metadata:
+      # Added support for Pod Annotations
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "honeybeepf.selectorLabels" . | nindent 8 }}
+    spec:
+      # Support for private registry image pull secrets
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      
+      serviceAccountName: {{ include "honeybeepf.serviceAccountName" . }}
+      hostPID: true 
+      hostNetwork: true
+
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+
+          livenessProbe:
+            exec:
+              command: ["sh", "-c", "cat /proc/self/status"]
+            initialDelaySeconds: 10
+            periodSeconds: 30
+          readinessProbe:
+            exec:
+              command: ["sh", "-c", "cat /proc/self/status"]
+            initialDelaySeconds: 5
+            periodSeconds: 15
+
+          envFrom:
+            - configMapRef:
+                name: {{ include "honeybeepf.fullname" . }}
+
+          volumeMounts:
+            - mountPath: /sys/fs/bpf
+              name: bpf-fs
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      
+      volumes:
+        - name: bpf-fs
+          hostPath:
+            path: /sys/fs/bpf
+            type: Directory
