@@ -31,7 +31,7 @@ impl HoneyBeeEngine {
     }
 
     pub async fn run(mut self) -> Result<()> {
-        // OpenTelemetry 메트릭 초기화
+        // Init OpenTelemetry Metric
         if let Err(e) = telemetry::init_metrics() {
             warn!("Failed to initialize OpenTelemetry metrics: {}. Metrics will not be exported.", e);
         }
