@@ -20,7 +20,7 @@ podAnnotations: {}
 # Prometheus scrapes the OTel Collector's prometheus exporter (port 8889), 
 # NOT the agent directly. This service is disabled by default.
 metrics:
-  enabled: false  # Agent doesn't expose /metrics directly
+  #enabled: false  # InActive ServiceMonitor
   port: 9464
   path: "/metrics"
   service:
@@ -31,17 +31,7 @@ metrics:
       prometheus.io/port: "9464"
       prometheus.io/path: "/metrics"
     labels: {}
-  # If want to use ServiceMonitor you must enable ServiceMonitor
-  serviceMonitor:
-    enabled: false
-    interval: 30s
-    scrapeTimeout: 10s
-    # Required for Prometheus Operator to recognize ServiceMonitor
-    labels:
-      release: prometheus-operator
-    namespace: ""
-    # Preserve labels sent from the application (prevents overwriting)
-    honorLabels: true
+
 
 
 # Data Output
