@@ -4,24 +4,30 @@ fullnameOverride: ""
 
 # Image configuration including private registry support
 image:
-  repository: "dorokrok/honeybeepf"
-  tag: "latest"
-  pullPolicy: IfNotPresent
+  repository: "ttl.sh/honeybeepf-prod"
+  tag: "24h"
+  pullPolicy: Always
 imagePullSecrets: [] # List for private registry credentials
 
 # Annotations for the pod
 podAnnotations: {}
   # testAnnotation: "testValue"
 
-# Metrics exposure for scraping by OpenTelemetry Collector (Prometheus receiver)
+# Metrics exposure configuration
+# NOTE: HoneybeePF uses OTLP to send metrics to OTel Collector.
+# Prometheus scrapes the OTel Collector's prometheus exporter (port 8889), 
+# NOT the agent directly. This service is disabled by default.
 metrics:
-  enabled: true
+  enabled: false  # Agent doesn't expose /metrics directly
   port: 9464
   path: "/metrics"
   service:
-    enabled: true
+    enabled: false  # Disabled - metrics go through OTel Collector
     type: ClusterIP
-    annotations: {}
+    annotations:
+      prometheus.io/scrape: "false"
+      prometheus.io/port: "9464"
+      prometheus.io/path: "/metrics"
     labels: {}
   # If want to use ServiceMonitor you must enable ServiceMonitor
   serviceMonitor:
