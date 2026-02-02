@@ -3,8 +3,10 @@ nameOverride: ""
 fullnameOverride: ""
 
 # Image configuration including private registry support
+# NOTE: Update repository to your Docker Hub username after PR merge
+# During development, override with: --set image.repository=ttl.sh/your-image --set image.tag=2h
 image:
-  repository: "dorokrok/honeybeepf"
+  repository: "docker.io/dorokrok/honeybeepf"
   tag: "latest"
   pullPolicy: IfNotPresent
 imagePullSecrets: [] # List for private registry credentials
@@ -13,30 +15,21 @@ imagePullSecrets: [] # List for private registry credentials
 podAnnotations: {}
   # testAnnotation: "testValue"
 
-# Metrics exposure for scraping by OpenTelemetry Collector (Prometheus receiver)
-metrics:
-  enabled: true
-  port: 9464
-  path: "/metrics"
-  service:
-    enabled: true
-    type: ClusterIP
-    annotations: {}
-    labels: {}
-  # If want to use ServiceMonitor you must enable ServiceMonitor
-  serviceMonitor:
-    enabled: false
-    interval: 30s
-    scrapeTimeout: 10s
-    labels: {}
-    namespace: ""
-
+# Metrics exposure configuration
+# NOTE: HoneybeePF uses OTLP to send metrics to OTel Collector.
+# Prometheus scrapes the OTel Collector's prometheus exporter (port 8889), 
+# NOT the agent directly. The agent does NOT expose a /metrics endpoint.
+# ServiceMonitor is NOT used - this chart uses annotation-based scraping.
 
 # Data Output
 output:
   # if you want to send data to OpenTelemetry Collector from your application set this values.
+  # Recommended FQDN format: <service>.<namespace>.svc.cluster.local:<port>
+  # NOTE: Default namespace is 'monitoring'. If using a different namespace,
+  # update the endpoint below (e.g., replace 'monitoring' with your namespace).
+  # You can specify with or without http:// prefix (template handles it automatically)
   otlp:
-    endpoint: "otel-collector.monitoring.svc:4317"
+    endpoint: "honeybeepf-otel-collector-opentelemetry-collector.monitoring.svc.cluster.local:4317"
     protocol: "grpc"
 
 
@@ -88,4 +81,9 @@ resources:
 
 # Scheduling
 nodeSelector:
+
   kubernetes.io/os: linux
+
+metrics:
+  enabled: false
+
